@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>আমার ই-কমার্স শপ</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans">
+
+    <header class="bg-red-500 text-white sticky top-0 z-50 shadow-md">
+        <div class="container mx-auto px-4 py-3 flex flex-col md:flex-row justify-between items-center gap-3">
+            <h1 class="text-2xl font-bold tracking-wide">আমার শপ</h1>
+            
+            <div class="relative w-full md:w-1/2">
+                <input type="text" id="search-box" oninput="showSuggestions()" placeholder="পণ্য সার্চ করুন (যেমন: Speaker...)" class="w-full px-4 py-2 text-black rounded-lg focus:outline-none">
+                <div id="suggestion-box" class="absolute left-0 right-0 bg-white text-black mt-1 rounded-lg shadow-lg hidden max-h-48 overflow-y-auto z-50"></div>
+            </div>
+
+            <button onclick="toggleCart()" class="relative bg-red-600 px-4 py-2 rounded-lg hover:bg-red-700 transition">
+                <i class="fas fa-shopping-cart text-xl"></i>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-yellow-400 text-black text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">0</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <h2 class="text-xl font-bold mb-6 text-gray-800 border-l-4 border-red-500 pl-2">আমাদের পণ্যসমূহ</h2>
+        <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            </div>
+    </main>
+
+    <div id="cart-sidebar" class="fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-4 bg-gray-900 text-white flex justify-between items-center">
+            <h3 class="font-bold text-lg">আপনার কার্ট</h3>
+            <button onclick="toggleCart()" class="text-xl hover:text-red-400">&times;</button>
+        </div>
+        <div id="cart-items" class="p-4 flex-1 overflow-y-auto space-y-4">
+            </div>
+        
+        <div class="p-4 border-t border-gray-200 bg-gray-50">
+            <div class="flex justify-between font-bold text-lg mb-4">
+                <span>পণ্যের মোট দাম:</span>
+                <span>৳<span id="cart-total">0</span></span>
+            </div>
+            
+            <div class="mb-4 space-y-2">
+                <label class="block text-sm font-semibold">ডেলিভারি এলাকা ও খরচ:</label>
+                <select id="delivery-location" onchange="updateTotalWithShipping()" class="w-full p-2 border rounded">
+                    </select>
+            </div>
+            
+            <div class="text-center font-bold text-red-600 text-xl mb-4">
+                সর্বমোট বিল: ৳<span id="grand-total">0</span>
+            </div>
+            <button onclick="checkout()" class="w-full bg-green-500 text-white py-3 rounded-lg font-bold hover:bg-green-600 transition">অর্ডার কনফার্ম করুন</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚙️ কুরিয়ার খরচ মডিফাই করার সেটিংস (আপনি এখান থেকে দাম পরিবর্তন করতে পারবেন)
+        // ==========================================
+        const shippingRates = {
+            insideDhaka: { name: "ঢাকার ভেতরে (সর্বনিম্ন)", cost: 120 },
+            outsideDhaka: { name: "ঢাকার বাইরে", cost: 180 }
+        };
+
+        // পণ্য তালিকা (ডেমো)
+        const products = [
+            { id: 1, name: "Tweeter Speaker 200W", price: 2695, image: "https://images.unsplash.com/photo-1612444530582-fc66183b16f7?w=300" },
+            { id: 2, name: "Premium Cat Food", price: 220, image: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300" }
+        ];
+
+        let cart = [];
+
+        // কুরিয়ার ড্রপডাউন লোড করা
+        function loadShippingOptions() {
+            const select = document.getElementById('delivery-location');
+            select.innerHTML = `
+                <option value="${shippingRates.insideDhaka.cost}">${shippingRates.insideDhaka.name} - ৳${shippingRates.insideDhaka.cost}</option>
+                <option value="${shippingRates.outsideDhaka.cost}">${shippingRates.outsideDhaka.name} - ৳${shippingRates.outsideDhaka.cost}</option>
+            `;
+        }
+
+        function displayProducts(productsToShow) {
+            const container = document.getElementById('product-list');
+            container.innerHTML = '';
+            productsToShow.forEach(product => {
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-xl shadow hover:shadow-lg transition flex flex-col justify-between">
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-48 object-cover rounded-lg mb-4">
+                        <div>
+                            <h3 class="font-semibold text-gray-800 text-sm h-10 overflow-hidden mb-1">${product.name}</h3>
+                            <p class="text-red-500 font-bold text-lg mb-3">৳${product.price}</p>
+                        </div>
+                        <button onclick="addToCart(${product.id})" class="w-full bg-red-500 text-white py-2 rounded-lg text-sm font-bold hover:bg-red-600 transition">কার্টে যোগ করুন</button>
+                    </div>
+                `;
+            });
+        }
+
+        function showSuggestions() {
+            const query = document.getElementById('search-box').value.toLowerCase();
+            const box = document.getElementById('suggestion-box');
+            if(!query) { box.classList.add('hidden'); return; }
+            const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+            if(filtered.length === 0) { box.classList.add('hidden'); return; }
+            box.innerHTML = '';
+            filtered.forEach(p => {
+                box.innerHTML += `<div onclick="selectProduct('${p.name}')" class="p-3 hover:bg-gray-100 cursor-pointer border-b text-sm">${p.name}</div>`;
+            });
+            box.classList.remove('hidden');
+        }
+
+        function selectProduct(name) {
+            document.getElementById('search-box').value = name;
+            document.getElementById('suggestion-box').classList.add('hidden');
+            const filtered = products.filter(p => p.name === name);
+            displayProducts(filtered);
+        }
+
+        function toggleCart() {
+            document.getElementById('cart-sidebar').classList.toggle('translate-x-full');
+        }
+
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const exists = cart.find(item => item.id === id);
+            if(exists) { exists.quantity++; } else { cart.push({...product, quantity: 1}); }
+            updateCart();
+        }
+
+        function updateCart() {
+            document.getElementById('cart-count').innerText = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const container = document.getElementById('cart-items');
+            container.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                total += item.price * item.quantity;
+                container.innerHTML += `
+                    <div class="flex items-center justify-between border-b pb-2">
+                        <div class="flex items-center gap-2">
+                            <img src="${item.image}" class="w-12 h-12 object-cover rounded">
+                            <div>
+                                <h4 class="text-xs font-bold">${item.name}</h4>
+                                <p class="text-xs text-gray-500">৳${item.price} x ${item.quantity}</p>
+                            </div>
+                        </div>
+                        <button onclick="removeFromCart(${item.id})" class="text-red-500"><i class="fas fa-trash"></i></button>
+                    </div>
+                `;
+            });
+            document.getElementById('cart-total').innerText = total;
+            updateTotalWithShipping();
+        }
+
+        function removeFromCart(id) {
+            cart = cart.filter(item => item.id !== id);
+            updateCart();
+        }
+
+        function updateTotalWithShipping() {
+            const total = parseInt(document.getElementById('cart-total').innerText);
+            const shipping = parseInt(document.getElementById('delivery-location').value);
+            document.getElementById('grand-total').innerText = total > 0 ? (total + shipping) : 0;
+        }
+
+        function checkout() {
+            if(cart.length === 0) { alert('আপনার কার্ট খালি!'); return; }
+            const grandTotal = document.getElementById('grand-total').innerText;
+            alert(`কুরিয়ার খরচসহ আপনার সর্বমোট বিল হয়েছে ৳${grandTotal}।`);
+        }
+
+        // পেজ লোড হওয়ার সময় রান হবে
+        loadShippingOptions();
+        displayProducts(products);
+    </script>
+</body>
+</html>

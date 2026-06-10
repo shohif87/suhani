@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Suhani Shop | দারাজের মতো ফ্রি ই-কমার্স</title>
+    <title>Suhani Shop |</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
@@ -16,7 +16,7 @@
             
             <div class="relative w-full md:w-1/2">
                 <div class="flex">
-                    <input type="text" id="search-box" oninput="showSuggestions()" placeholder="দারাজের মতো পণ্য সার্চ করুন..." class="w-full px-4 py-2 text-black rounded-l-lg focus:outline-none text-sm">
+                    <input type="text" id="search-box" oninput="showSuggestions()" placeholder="পণ্য সার্চ করুন..." class="w-full px-4 py-2 text-black rounded-l-lg focus:outline-none text-sm">
                     <button class="bg-[#d0611e] px-6 rounded-r-lg hover:bg-[#b85317] transition"><i class="fas fa-search"></i></button>
                 </div>
                 <div id="suggestion-box" class="absolute left-0 right-0 bg-white text-black mt-1 rounded-lg shadow-2xl hidden max-h-60 overflow-y-auto z-50 border border-gray-200"></div>
@@ -240,7 +240,8 @@
             cart.forEach(item => { message += `▪️ ${item.name} (Qty: ${item.quantity})\n`; });
             message += `\n💵 *সর্বমোট বিল (কুরিয়ারসহ):* ৳${grandTotal}\n\nদয়া করে আপনার নাম, ঠিকানা এবং পেমেন্ট TrxID লিখে মেসেজটি পাঠান।`;
             
-            const whatsappNumber = "88017XXXXXXXX"; // 👈 এখানে আপনার মোবাইল নাম্বারটি দিন
+            const whatsappNumber = "8801895287543"; // 👈 এখানে আপনার মোবাইল নাম্বারটি দিন
+             const whatsappNumber = "8801895287543"; // 👈 এখানে আপনার মোবাইল নাম্বারটি দিন
             window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
